@@ -27,7 +27,7 @@ const registerUser = async(req, res, next) => {
             email,
             password
         });
-        User.save(userData);
+        userData.save();
         res.json({message: "User registerd successfully"});
     } catch (error){
         next(error);
