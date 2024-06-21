@@ -6,6 +6,8 @@ const jwt = require("jsonwebtoken");
 const registerUser = async(req, res, next) => {
     try{
         const {name, email, password} = req.body;
+        const formattedEmail = email.toLowerCase();
+
         if (!name || !email || !password) {
             return res.status(400).json({
                 errorMessage: "Bad request",
@@ -13,7 +15,7 @@ const registerUser = async(req, res, next) => {
         }
         //yup, joi, express validator
 
-        const isExistingUser = await User.findOne({email: email});
+        const isExistingUser = await User.findOne({email: formattedEmail});
         if(isExistingUser){
             return res
             .status(409)
@@ -24,10 +26,12 @@ const registerUser = async(req, res, next) => {
 
         const userData = new User({
             name,
-            email,
-            password
+            email: formattedEmail,
+            password: hashedPassword,
         });
-        userData.save();
+
+        await userData.save();
+        
         res.json({message: "User registerd successfully"});
     } catch (error){
         next(error);
