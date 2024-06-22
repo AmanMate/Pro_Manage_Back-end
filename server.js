@@ -31,7 +31,7 @@ mongoose
         })
         .catch((error) => {
             console.log("DB failed to connect", error);
-        })
+        });
 
 
 const PORT = 4002;
