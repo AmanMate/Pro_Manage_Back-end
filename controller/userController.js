@@ -79,6 +79,7 @@ const loginUser = async(req, res, next) => {
         res.json({
             message: "User logged in",
             token: token,
+            userId: userDetails._id,
             name: userDetails.name,
         });
      
@@ -90,7 +91,7 @@ const loginUser = async(req, res, next) => {
 //Update
 const updateUser = async (req, res, next) => {
     try {
-        const { name, email, oldPassword, newPassword } = req.body;
+        const { name, email, oldEmail, oldPassword, newPassword } = req.body;
         
         if (!name || !email || !oldPassword || !newPassword) {
             return res.status(400).json({
@@ -98,14 +99,14 @@ const updateUser = async (req, res, next) => {
             });
         }
         
-        // const formattedEmail = email.toLowerCase();
+        const formattedEmail = oldEmail.toLowerCase();
 
-        // const user = await User.findOne({ email: formattedEmail });
-        // if (!user) {
-        //     return res.status(404).json({
-        //         errorMessage: "User not found",
-        //     });
-        // }
+        const user = await User.findOne({ email: formattedEmail });
+        if (!user) {
+            return res.status(404).json({
+                errorMessage: "User not found",
+            });
+        }
 
         const isOldPasswordMatched = await bcrypt.compare(oldPassword, user.password);
         if (!isOldPasswordMatched) {
@@ -113,11 +114,12 @@ const updateUser = async (req, res, next) => {
                 errorMessage: "Invalid old password",
             });
         }
-
-        if (!name) {
+        console.log(name);
+        if(name!=user.name){
             user.name = name;
-        } else {
-            user.name = name;
+        }
+        if(email!=oldEmail){
+            user.email = email;
         }
         user.password = await bcrypt.hash(newPassword, 10);
 
