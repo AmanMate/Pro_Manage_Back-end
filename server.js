@@ -2,6 +2,7 @@ require("dotenv").config();
 const express = require("express");
 const mongoose = require("mongoose");
 const authRoute = require("./routes/auth");
+const taskRoute = require("./routes/task");
 const cors = require("cors");
 
 const app = express();
@@ -18,6 +19,7 @@ app.get("/health", (req, res) => {
 })
 
 app.use("/api/v1/auth", authRoute);
+app.use("/api/v1/task", taskRoute);
 
 app.use((error, req, res, next) => {
     console.log(error);

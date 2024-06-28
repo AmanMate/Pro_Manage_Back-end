@@ -91,17 +91,24 @@ const loginUser = async(req, res, next) => {
 //Update
 const updateUser = async (req, res, next) => {
     try {
-        const { name, email, oldEmail, oldPassword, newPassword } = req.body;
+        const { name, email, oldPassword, newPassword } = req.body;
         
         if (!name || !email || !oldPassword || !newPassword) {
             return res.status(400).json({
                 errorMessage: "Bad request",
             });
         }
-        
-        const formattedEmail = oldEmail.toLowerCase();
 
-        const user = await User.findOne({ email: formattedEmail });
+        const user = await User.findById(req.currentUserId); // Use await to handle the asynchronous query
+        
+        if (user.name === name) {
+            //update user name
+        }
+        
+        if (user.email === email) {
+            //update user email
+        }
+        
         if (!user) {
             return res.status(404).json({
                 errorMessage: "User not found",
@@ -114,11 +121,12 @@ const updateUser = async (req, res, next) => {
                 errorMessage: "Invalid old password",
             });
         }
-        console.log(name);
-        if(name!=user.name){
+
+        // Update user fields
+        if (user.name !== name) {
             user.name = name;
         }
-        if(email!=oldEmail){
+        if (user.email !== email) {
             user.email = email;
         }
         user.password = await bcrypt.hash(newPassword, 10);
