@@ -1,7 +1,6 @@
 const User = require("../models/user");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
-const { mongoose } = require("mongoose");
 
 //Register
 const registerUser = async(req, res, next) => {
@@ -80,7 +79,7 @@ const loginUser = async(req, res, next) => {
         res.json({
             message: "User logged in",
             token: token,
-            userId: userDetails._id,
+            userId: userDetails._id.toString(),
             name: userDetails.name,
         });
      
@@ -109,6 +108,7 @@ const updateUser = async (req, res, next) => {
             });
         }
 
+        // if (user) 
         if (user.name != name) {
             user.name = name;
         }
@@ -117,14 +117,14 @@ const updateUser = async (req, res, next) => {
             user.email = email;
         }
 
-        if (!oldPassword) {
+        if (oldPassword != "") {
             const isOldPasswordMatched = await bcrypt.compare(oldPassword, user.password);
             if (!isOldPasswordMatched) {
                 return res.status(409).json({
                     errorMessage: "Invalid old password",
                 });
             }
-            if (!newPassword) {
+            if (newPassword != "") {
                 user.password = await bcrypt.hash(newPassword, 10);
             }
         }
@@ -149,7 +149,7 @@ const getUserDetails = async (req, res, next) => {
         });
     }
     
-    const userDetails = await User.findOne({email: reqemail});
+    const userDetails = await User.findone({email: reqemail});
 
     if (!userDetails) {
         return res.status(404).json({

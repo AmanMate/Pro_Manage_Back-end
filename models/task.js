@@ -1,5 +1,17 @@
 const mongoose = require("mongoose");
 
+const checklistItemSchema = new mongoose.Schema({
+    text: {
+        type: String,
+        required: true,
+    },
+    checked: {
+        type: Boolean,
+        required: true,
+        default: false
+    }
+});
+
 const taskSchema = new mongoose.Schema(
     {
         title: {
@@ -15,7 +27,7 @@ const taskSchema = new mongoose.Schema(
             required: true,
         },
         checklistItems: {
-            type: Array,
+            type: [checklistItemSchema],
             required: true,
         },
         dueDate: {

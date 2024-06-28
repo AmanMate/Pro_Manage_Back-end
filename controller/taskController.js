@@ -2,13 +2,14 @@ const Task = require("../models/task");
 
 const createTask = async (req, res, next) => {
     try {
-        const currentUserId = req.currentUserId;
+        // const currentUserId = req.currentUserId;
         const {
             title,
             priority,
             assignee,
             checklistItems,
             dueDate,
+            userId
         } = req.body;
 
         if (
@@ -29,7 +30,7 @@ const createTask = async (req, res, next) => {
             assignee,
             checklistItems,
             dueDate,
-            refUserId: currentUserId,
+            refUserId: req.body.userId,
         })
 
         await taskCreated.save();
