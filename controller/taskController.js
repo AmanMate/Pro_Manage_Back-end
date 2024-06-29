@@ -30,7 +30,7 @@ const createTask = async (req, res, next) => {
             assignee,
             checklistItems,
             dueDate,
-            refUserId: req.body.userId,
+            refUserId: req.currentUserId,
         })
 
         await taskCreated.save();
@@ -44,7 +44,7 @@ const createTask = async (req, res, next) => {
 
 const getCreateTaskById = async (req, res, next) => {
     try {
-        const taskId = req.body.taskId;
+        const taskId = req.body.taskId;  // Assuming taskId is passed as a route parameter
 
         if (!taskId) {
             return res.status(400).json({
@@ -52,67 +52,48 @@ const getCreateTaskById = async (req, res, next) => {
             });
         }
 
-    const taskCreated = await Task.findOne({_id: taskId});
+        const taskCreated = await Task.findOne({ _id: taskId, refUserId: req.currentUserId });
 
-    if (!taskCreated) {
-        return res.status(400).json({
-            errorMessage: "Bad request",
-        });
-    }
+        if (!taskCreated) {
+            return res.status(400).json({
+                errorMessage: "Task not found",
+            });
+        }
 
-    let isEditable = false;
+        let isEditable = false;
+        const userId = req.body.userId;  // Assuming userId is passed in the request body
 
-    const userId = req.body.userId;
+        if (taskCreated.refUserId.toString() === userId) {
+            isEditable = true;
+        }
 
-    if (taskCreated.refUserId.toString() === userId){
-        isEditable = true;
-    }
+        res.json({ taskCreated, isEditable: isEditable });
 
-    res.json({ taskCreated, isEditable: isEditable});
     } catch (error) {
         next(error);
     }
 };
 
+
 const updateCreateTaskById = async (req, res, next) => {
     try {
-        const taskId = req.params.taskId;
-        const {
-            title,
-            priority,
-            assignee,
-            checklistItems,
-            dueDate,
-        } = req.body;
+        const { taskId, title, priority, assignee, checklistItems, dueDate } = req.body;
 
-        if(
-            !title ||
-            !priority ||
-            !assignee ||
-            !checklistItems ||
-            !dueDate 
-        ) {
-            return res.status(400).json({
-                errorMessage: "Bad request",
-            });
+        // Check if all required fields are present
+        if (!taskId || !title || !priority || !assignee || !checklistItems || !dueDate) {
+            return res.status(400).json({ errorMessage: "Bad request" });
         }
 
-        if (!taskId) {
-            return res.status(400).json({
-                errorMessage: "Bad request",
-            });
-        }
-
-        const isTaskExists = await Task.findOne({ _id: taskId });
+        // Check if task with given taskId exists
+        const isTaskExists = await Task.findOne({ _id: taskId, refUserId: req.currentUserId });
 
         if (!isTaskExists) {
-            return res.status(400).json({
-                errorMessage: "Bad request",
-            });
+            return res.status(404).json({ errorMessage: "Task not found" });
         }
 
-        await Task.updateOne(
-            { _id: taskId },
+        // Update the task
+        await Task.findOneAndUpdate(
+            { _id: taskId, refUserId: req.currentUserId },
             {
                 $set: {
                     title,
@@ -123,11 +104,16 @@ const updateCreateTaskById = async (req, res, next) => {
                 },
             }
         );
-         res.json({ message: "Task Updated Sucessfully"});
+
+        // No need to call isTaskExists.save() here
+
+        // Return success response
+        res.json({ message: "Task Updated Successfully", task: isTaskExists });
     } catch (error) {
         next(error);
     }
 };
+
 
 const deleteTaskById = async (req, res, next) => {
     try {
@@ -139,7 +125,7 @@ const deleteTaskById = async (req, res, next) => {
         });
       }
   
-      const isTaskExists = await Task.findOne({ _id: taskId });
+      const isTaskExists = await Task.findOne({ _id: taskId, refUserId: req.currentUserId });
   
       if (!isTaskExists) {
         return res.status(400).json({
@@ -147,7 +133,7 @@ const deleteTaskById = async (req, res, next) => {
         });
       }
   
-      await Task.deleteOne({ _id: taskId });
+      await Task.deleteOne({ _id: taskId, refUserId: req.currentUserId });
   
       res.json({ message: "Task Deleted Successfully" });
     } catch (error) {
@@ -157,7 +143,7 @@ const deleteTaskById = async (req, res, next) => {
   
   const getAllTasksById = async (req, res, next) => {
     try {
-      const userId = req.body.userId;
+      const userId = req.currentUserId;
   
       if (!userId) {
         return res.status(400).json({
