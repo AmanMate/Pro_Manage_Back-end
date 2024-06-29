@@ -44,7 +44,7 @@ const createTask = async (req, res, next) => {
 
 const getCreateTaskById = async (req, res, next) => {
     try {
-        const { taskId, userId } = req.params;
+        const taskId = req.body.taskId;
 
         if (!taskId) {
             return res.status(400).json({
@@ -52,7 +52,7 @@ const getCreateTaskById = async (req, res, next) => {
             });
         }
 
-    const taskCreated = await Task.findById(taskId);
+    const taskCreated = await Task.findOne({_id: taskId});
 
     if (!taskCreated) {
         return res.status(400).json({
@@ -61,6 +61,8 @@ const getCreateTaskById = async (req, res, next) => {
     }
 
     let isEditable = false;
+
+    const userId = req.body.userId;
 
     if (taskCreated.refUserId.toString() === userId){
         isEditable = true;
@@ -129,7 +131,7 @@ const updateCreateTaskById = async (req, res, next) => {
 
 const deleteTaskById = async (req, res, next) => {
     try {
-      const taskId = req.params.taskId;
+      const taskId = req.body.taskId;
   
       if (!taskId) {
         return res.status(400).json({
@@ -155,7 +157,7 @@ const deleteTaskById = async (req, res, next) => {
   
   const getAllTasksById = async (req, res, next) => {
     try {
-      const userId = req.params.userId;
+      const userId = req.body.userId;
   
       if (!userId) {
         return res.status(400).json({
